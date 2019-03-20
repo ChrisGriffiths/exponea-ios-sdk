@@ -15,8 +15,15 @@ public protocol PushNotificationManagerType: class {
 }
 
 public protocol PushNotificationManagerDelegate: class {
+    var shouldHandleLinks: Bool { get }
     func pushNotificationOpened(with action: ExponeaNotificationActionType,
                                 value: String?, extraData: [AnyHashable: Any]?)
+}
+
+extension PushNotificationManagerDelegate {
+    var shouldHandleLinks: Bool {
+        return true
+    }
 }
 
 class PushNotificationManager: NSObject, PushNotificationManagerType {
@@ -123,9 +130,11 @@ class PushNotificationManager: NSObject, PushNotificationManagerType {
                 // Track the action URL
                 properties["notification_action_url"] = .string(value)
 
-                // Let application handle the URL open (no matter if deeplink or browser) after we're done here
-                defer {
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                if delegate?.shouldHandleLinks ?? true {
+                    // Let application handle the URL open (no matter if deeplink or browser) after we're done here
+                    defer {
+                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                    }
                 }
             }
         }
